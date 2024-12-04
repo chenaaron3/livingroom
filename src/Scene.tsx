@@ -23,7 +23,7 @@ function TV() {
   }, []);
   return (
     <>
-      <mesh position={[0, 0, 2]} rotation={[0, -Math.PI, 0]} >
+      <mesh position={[0, 1, 2]} rotation={[0, -Math.PI, 0]} >
         <planeGeometry args={[5, 3]} /> {/* Adjust size to simulate a TV */}
         <meshBasicMaterial map={texture} toneMapped={false} />
       </mesh>
@@ -207,7 +207,7 @@ const Plant = () => {
 const Floor = () => {
   const texture = useTexture(FloorTexture);
   let meshes = []
-  const size = 100
+  const size = 10
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
       meshes.push(
@@ -233,6 +233,7 @@ export function Scene() {
     shadows
     gl={{ antialias: true }}
     camera={{ position: [0, 2, -3], near: 0.25, fov: 50 }}
+    style={{ background: "black" }}
   >
     <ambientLight intensity={1} />
     <pointLight color={"yellow"} position={[0, .5, 0]} castShadow intensity={.15} />
@@ -251,8 +252,8 @@ export function Scene() {
       zoomSpeed={2}
       minDistance={2}
       maxDistance={4}
-      maxPolarAngle={Math.PI / 3.0}
-      minPolarAngle={Math.PI / 3.0}
+      maxPolarAngle={Math.PI / 2.0}
+    // minPolarAngle={Math.PI / 3.0}
     />
   </Canvas >
 }
