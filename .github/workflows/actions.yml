@@ -40,7 +40,7 @@ jobs:
       # Do not set basepath when not hosting on github
       - name: Add BasePath
         run: |
-          sed -i 's/base: "\/",/base: "\/livingroom\//,' ./vite.config.ts
+          sed -i 's/base: "\/",/base: "\/livingroom\/,/' ./vite.config.ts
       - name: Build
         run: npm run build
       - name: Setup Pages
