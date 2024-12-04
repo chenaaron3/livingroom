@@ -5,12 +5,20 @@ import { OrbitControls, useGLTF, useTexture, Plane, useVideoTexture } from '@rea
 import ExplosionConfetti from './Confetti'
 import { useSpring, animated, easings } from '@react-spring/three'
 
+import TVMedia from "/Audio.mp4"
+import CouchModel from "/Couch.glb"
+import FloorTexture from "/floor.jpg"
+import HeartModel from "/Heart.glb"
+import PlantModel from "/Plant.glb"
+import PresentModel from "/Present.glb"
+import RugModel from "/Rug.glb"
+import TableModel from "/Table.glb"
 
 function TV() {
-  const texture = useVideoTexture("/Audio.mp4")
+  const texture = useVideoTexture(TVMedia)
   // Play music when active
   useEffect(() => {
-    const audio = new Audio("/Audio.mp4");
+    const audio = new Audio(TVMedia);
     audio.play()
   }, []);
   return (
@@ -39,7 +47,7 @@ const Present = () => {
   const [active, setActive] = useState(false)
   const [hover, setHover] = useState(false)
   const { scale } = useSpring({ scale: active ? 0 : (hover ? 3 : 2) })
-  const { scene } = useGLTF("/Present.glb");
+  const { scene } = useGLTF(PresentModel);
   useFrame((_, delta) => {
     modelRef.current.rotation.y += delta
   })
@@ -86,7 +94,7 @@ const Present = () => {
 };
 
 const Heart = () => {
-  const { scene } = useGLTF("/Heart.glb");
+  const { scene } = useGLTF(HeartModel);
   const modelRef = useRef<THREE.Mesh>(null!)
   useEffect(() => {
     if (modelRef.current) {
@@ -120,7 +128,7 @@ const Heart = () => {
 }
 
 const Couch = () => {
-  const { scene } = useGLTF("/Couch.glb");
+  const { scene } = useGLTF(CouchModel);
   const modelRef = useRef<THREE.Mesh>(null!)
   useEffect(() => {
     if (modelRef.current) {
@@ -139,7 +147,7 @@ const Couch = () => {
 }
 
 const Table = () => {
-  const { scene } = useGLTF("/Table.glb");
+  const { scene } = useGLTF(TableModel);
   const modelRef = useRef<THREE.Mesh>(null!)
   useEffect(() => {
     if (modelRef.current) {
@@ -159,7 +167,7 @@ const Table = () => {
 }
 
 const Rug = () => {
-  const { scene } = useGLTF("/Rug.glb");
+  const { scene } = useGLTF(RugModel);
   const modelRef = useRef<THREE.Mesh>(null!)
   useEffect(() => {
     if (modelRef.current) {
@@ -178,7 +186,7 @@ const Rug = () => {
 }
 
 const Plant = () => {
-  const { scene } = useGLTF("/Plant.glb");
+  const { scene } = useGLTF(PlantModel);
   const modelRef = useRef<THREE.Mesh>(null!)
   useEffect(() => {
     if (modelRef.current) {
@@ -197,7 +205,7 @@ const Plant = () => {
 }
 
 const Floor = () => {
-  const texture = useTexture('/floor.jpg');
+  const texture = useTexture(FloorTexture);
   let meshes = []
   const size = 100
   for (let r = 0; r < size; r++) {
