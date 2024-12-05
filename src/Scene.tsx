@@ -1,7 +1,7 @@
 import * as THREE from 'three'
-import { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, useGLTF, useTexture, Plane, useVideoTexture } from '@react-three/drei';
+import { OrbitControls, useGLTF, useTexture, useVideoTexture, Html } from '@react-three/drei';
 import ExplosionConfetti from './Confetti'
 import { useSpring, animated, easings } from '@react-spring/three'
 
@@ -15,36 +15,96 @@ import RugModel from "/Rug.glb"
 import TableModel from "/Table.glb"
 
 function TV() {
+  const texts = [
+    "Hi Eri (babi)!",
+    "Thanks for coming out to this trip with me ❤️",
+    "I really appreciate it :)",
+    "It's crazy to think how far we've come.",
+    "5 months ago we dreamed of living in NY,",
+    "Now look at where we are :)",
+    "Long distance has been pretty rough,",
+    "And I know I tricked you back into it,",
+    "But I think its completely worth it.",
+    "Your postcard board is getting so full,",
+    "Hope this digital card saves you some space.",
+    "Looking forward to all the memories we make,",
+    "In the city that never sleeps.",
+    "Now enjoy some jazz music!",
+    "From Aaron (other babi)",
+  ]
+  const [index, setIndex] = useState(0)
+
   const texture = useVideoTexture(TVMedia)
   // Play music when active
   useEffect(() => {
     const audio = new Audio(TVMedia);
     audio.play()
   }, []);
+
+  // Cancel interval
+  useEffect(() => {
+    console.log(index, texts.length)
+    if (index < texts.length + 3) {
+      // Scroll effect
+      setTimeout(() => {
+        setIndex(index + 1)
+      }, 2500)
+    }
+  }, [index])
+
   return (
     <>
       <mesh position={[0, 1, 2]} rotation={[0, -Math.PI, 0]} >
-        <planeGeometry args={[5, 3]} /> {/* Adjust size to simulate a TV */}
-        <meshBasicMaterial map={texture} toneMapped={false} />
-      </mesh>
+        <planeGeometry args={[5, 3]} />
+        <meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide} />
+        <Html position={[0, 0, 0]} transform center>
+          <div className='text-white -z-10 text-[8px] text-center flex justify-center items-center flex-col'>
+            {
+              texts.
+                filter(
+                  (_, i) => (i <= index && i >= index - 2)
+                ).map(
+                  (v, i) => <span key={"text" + i} className='bg-black bg-opacity-50'>{v}</span>
+                )
+            }
+          </div>
+        </Html>
+      </mesh >
     </>
   );
 }
 
-function BackgroundBG() {
+const BackgroundBG: React.FC<{ active: boolean }> = ({ active }) => {
+  const { intensity } = useSpring({
+    from: { intensity: 0 },
+    to: { intensity: .5 },
+    loop: { reverse: true }, // Reverse the animation for up-and-down motion
+    config: {
+      duration: 1000, easing: easings.easeInOutSine, // Smooth easing function
+    }, // Adjust for bounce feel
+  });
   return (
     <>
-      <Plane receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.65, 0]} scale={20}>
-        <shadowMaterial opacity={0.4} />
-      </Plane>
+      <ambientLight intensity={1} />
+      {
+        active &&
+        <animated.pointLight color={"red"} position={[0, .5, -.25]} decay={1} castShadow intensity={1} />
+      }
+      {
+        !active &&
+        <animated.pointLight color={"yellow"} position={[0, .5, 0]} castShadow intensity={intensity} />
+      }
+      <spotLight color={"yellow"} position={[10, 10, 10]} angle={.2} penumbra={.5} decay={0} intensity={Math.PI * .15} castShadow />
     </>
   )
 }
 
 // Load the model
-const Present = () => {
+const Present: React.FC<{
+  setActive: any;
+  active: boolean;
+}> = ({ setActive, active }) => {
   const modelRef = useRef<THREE.Mesh>(null!)
-  const [active, setActive] = useState(false)
   const [hover, setHover] = useState(false)
   const { scale } = useSpring({ scale: active ? 0 : (hover ? 3 : 2) })
   const { scene } = useGLTF(PresentModel);
@@ -66,18 +126,6 @@ const Present = () => {
   }, []);
 
   return <>
-    {active && <>
-      <ExplosionConfetti
-        shadows
-        particleSize={0.1}
-        numberOfExplosions={3}
-        spreaAreadRadius={1}
-        position={[0, 0, 0]}
-        colorsArray={['green', 'blue', 'orange', 'yellow', 'red']}
-      />
-      <Heart />
-      <TV />
-    </>}
     {/* @ts-ignore */}
     <animated.primitive
       position={[0, -.05, 0]}
@@ -115,15 +163,33 @@ const Heart = () => {
       duration: 750, easing: easings.easeInOutQuad, // Smooth easing function
     }, // Adjust for bounce feel
   });
+  const rotationSpring = useSpring({
+    from: { rotationY: Math.PI * 3 },
+    to: { rotationY: Math.PI },
+    config: {
+      duration: 750, easing: easings.easeInOutQuad, // Smooth easing function
+    }, // Adjust for bounce feel
+  });
+  const sizeSpring = useSpring({
+    from: { size: .0015 },
+    to: { size: .003 },
+    loop: { reverse: true },
+    config: {
+      duration: 750, easing: easings.easeInOutQuad, // Smooth easing function
+    }, // Adjust for bounce feel
+  });
+
 
   //@ts-ignore
   return <animated.primitive
     ref={modelRef}
     position-y={positionY}
+    rotation-y={rotationSpring.rotationY}
     rotation={[0, -Math.PI, 0]}
     castShadow
     object={scene}
-    scale={.003}
+    scale={sizeSpring.size}
+    onPointerOver={() => rotationSpring.rotationY.reset()}  // Trigger on hover
   />
 }
 
@@ -228,30 +294,45 @@ const Floor = () => {
 };
 
 export function Scene() {
+  const [active, setActive] = useState(false)
+
   return <Canvas
     dpr={1}
     shadows
     gl={{ antialias: true }}
-    camera={{ position: [0, 2, -3], near: 0.25, fov: 50 }}
+    camera={{ position: [0, 3, -5], near: 0.25, fov: 50 }}
     style={{ background: "black" }}
   >
-    <ambientLight intensity={1} />
-    <pointLight color={"yellow"} position={[0, .5, 0]} castShadow intensity={.15} />
-    <spotLight position={[10, 10, 10]} angle={.2} penumbra={.5} decay={0} intensity={Math.PI * .25} castShadow />
-    {/* <axesHelper args={[5]} /> */}
+    {/* <axesHelper args={[10]} /> */}
 
+    {/* Interactive items */}
+    {active && <>
+      <ExplosionConfetti
+        shadows
+        particleSize={0.1}
+        numberOfExplosions={3}
+        explosionCount={3}
+        spreaAreadRadius={1}
+        position={[0, 0, 0]}
+        colorsArray={['pink', 'orange', 'red']}
+      />
+      <Heart />
+      <TV />
+    </>}
+    <Present active={active} setActive={setActive} />
+
+    {/* Decoration items */}
     <Floor />
     <Couch />
     <Table />
-    <Present />
     <Rug />
     <Plant />
-    <BackgroundBG />
+    <BackgroundBG active={active} />
 
     <OrbitControls
-      zoomSpeed={2}
+      zoomSpeed={1}
       minDistance={2}
-      maxDistance={4}
+      maxDistance={6}
       maxPolarAngle={Math.PI / 2.0}
     // minPolarAngle={Math.PI / 3.0}
     />
